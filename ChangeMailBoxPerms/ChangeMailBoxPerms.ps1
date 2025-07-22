@@ -3,8 +3,21 @@
 
 Get-Mailbox -ResultSize Unlimited | ForEach-Object {
     $mailbox = $_.PrimarySmtpAddress
-    Set-MailboxFolderPermission -Identity Default "$mailbox\Calendar" -User Default -AccessRights LimitedDetails
+    $calendarIdentity = "$mailbox\Kalender"  # Correct Identity format
+
+    # Check if Default permissions already exist
+    $existingPermission = Get-MailboxFolderPermission -Identity $calendarIdentity -ErrorAction SilentlyContinue |
+                            Where-Object { $_.User -eq "Default" }
+
+    if ($existingPermission) {
+        # Modify existing permission
+        Set-MailboxFolderPermission -Identity $calendarIdentity -User Default -AccessRights LimitedDetails -Confirm:$false
+    } else {
+        # Add new permission
+        Add-MailboxFolderPermission -Identity $calendarIdentity -User Default -AccessRights LimitedDetails -Confirm:$false
+    }
 }
+
 
 # Access Rights     # Description
 # None              = No Access
